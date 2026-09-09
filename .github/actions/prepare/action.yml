@@ -11,31 +11,29 @@ runs:
     - name: Checkout
       uses: actions/checkout@v6
       with:
-        submodules: recursive
+        submodules: false   # 禁用子模块自动拉取，我们手动克隆
 
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v6
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Force update submodules
+    - name: Clone ungoogled-chromium
       shell: pwsh
       run: |
         if (Test-Path 'ungoogled-chromium') {
           Remove-Item -Recurse -Force 'ungoogled-chromium'
         }
-        git submodule sync --recursive
-        git submodule update --init --recursive --force
-        if ($LASTEXITCODE -ne 0) { throw "Submodule update failed with exit code $LASTEXITCODE" }
+        git clone --depth 1 https://github.com/Eloston/ungoogled-chromium.git ungoogled-chromium
+        if ($LASTEXITCODE -ne 0) { throw "Clone failed" }
 
-    - name: Verify submodule
+    - name: Verify ungoogled-chromium
       shell: pwsh
       run: |
         if (Test-Path 'ungoogled-chromium/utils') {
-          Write-Host "✅ Submodule successfully initialized"
+          Write-Host "✅ Successfully cloned ungoogled-chromium"
         } else {
-          Write-Error "❌ Submodule not found after update"
-          Get-ChildItem -Recurse -Depth 2 -Path . | Select-Object FullName
+          Write-Error "❌ Missing utils directory"
           exit 1
         }
 
