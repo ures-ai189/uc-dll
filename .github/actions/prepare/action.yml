@@ -18,6 +18,13 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
+    - name: Update submodules
+      shell: pwsh
+      run: |
+        git submodule sync --recursive
+        git submodule update --init --recursive --force
+      working-directory: ${{ github.workspace }}
+
     - name: Init
       shell: pwsh
       run: Copy-Item -Path . -Destination 'C:\ungoogled-chromium-windows' -Recurse
