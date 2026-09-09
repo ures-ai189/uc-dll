@@ -18,16 +18,32 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
-    - name: Update submodules
+    - name: Force update submodules
       shell: pwsh
       run: |
+        if (Test-Path 'ungoogled-chromium') {
+          Remove-Item -Recurse -Force 'ungoogled-chromium'
+        }
         git submodule sync --recursive
         git submodule update --init --recursive --force
-      working-directory: ${{ github.workspace }}
+        if ($LASTEXITCODE -ne 0) { throw "Submodule update failed with exit code $LASTEXITCODE" }
 
-    - name: Init
+    - name: Verify submodule
       shell: pwsh
-      run: Copy-Item -Path . -Destination 'C:\ungoogled-chromium-windows' -Recurse
+      run: |
+        if (Test-Path 'ungoogled-chromium/utils') {
+          Write-Host "✅ Submodule successfully initialized"
+        } else {
+          Write-Error "❌ Submodule not found after update"
+          Get-ChildItem -Recurse -Depth 2 -Path . | Select-Object FullName
+          exit 1
+        }
+
+    - name: Copy workspace to C:\
+      shell: pwsh
+      run: |
+        robocopy . C:\ungoogled-chromium-windows /MIR /R:1 /W:1 /NP /NFL /NDL
+        if ($LASTEXITCODE -ge 8) { throw "Robocopy failed with exit code $LASTEXITCODE" }
 
     - name: Setup Stage
       shell: pwsh
