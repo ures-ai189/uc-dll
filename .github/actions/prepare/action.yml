@@ -11,7 +11,7 @@ runs:
     - name: Checkout
       uses: actions/checkout@v6
       with:
-        submodules: false   # 禁用子模块自动拉取，我们手动克隆
+        submodules: false
 
     - name: Set up Python ${{ inputs.python-version }}
       uses: actions/setup-python@v6
@@ -41,7 +41,14 @@ runs:
       shell: pwsh
       run: |
         robocopy . C:\ungoogled-chromium-windows /MIR /R:1 /W:1 /NP /NFL /NDL
-        if ($LASTEXITCODE -ge 8) { throw "Robocopy failed with exit code $LASTEXITCODE" }
+        $exitCode = $LASTEXITCODE
+        if ($exitCode -ge 8) {
+          Write-Error "Robocopy failed with exit code $exitCode"
+          exit $exitCode
+        } else {
+          Write-Host "Robocopy completed with code $exitCode (success)"
+          exit 0
+        }
 
     - name: Setup Stage
       shell: pwsh
