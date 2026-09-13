@@ -101,8 +101,6 @@ jobs:
           script: |
             const workflows = [
               { key: 'x64', file: 'build-x64.yml' },
-              { key: 'x86', file: 'build-x86.yml' },
-              { key: 'arm', file: 'build-arm.yml' },
             ];
             const targetSha = process.env.TARGET_SHA;
             const outputs = { publishable: 'true' };
